@@ -445,6 +445,6 @@ def postprocess(classes, rects, keep_score=0.35):
     classes = classes[scores > keep_score]
     scores = scores[scores > keep_score]
 
-    keep = nms(rects, scores, 0.2)
+    keep = nms(rects, scores, 0.5)
     return classes[keep], rects[keep]
 

@@ -26,6 +26,7 @@ parser.add_argument('--model_dir', default='model/')
 parser.add_argument('--verbosity', default=50, type=int)
 parser.add_argument('--network', default='efficientdet-d0')
 parser.add_argument('--device', default='cuda')
+parser.add_argument('--checkpoint', default=None)
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -41,6 +42,10 @@ if __name__ == '__main__':
 
     model = EfficientDet(train_dataset.num_classes(), network=args.network, device=device).to(device)
 
+    if args.checkpoint:
+        model.load_state_dict(torch.load(args.checkpoint))
+
+    model.train()
     optimizer = ranger(model.parameters(), 1e-3)
 
     for e in range(args.epochs):
