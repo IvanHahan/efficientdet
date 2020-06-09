@@ -25,7 +25,7 @@ class DoubleConv(nn.Module):
 
 class RetinaHead(nn.Module):
 
-    def __init__(self, in_channels, num_classes, anchor_ratios=[0.5, 1, 2]):
+    def __init__(self, in_channels, num_classes, anchor_ratios=[0.5, 1, 2], device='cpu'):
         super().__init__()
         self.anchor_ratios = anchor_ratios
         self.num_classes = num_classes
@@ -38,6 +38,7 @@ class RetinaHead(nn.Module):
             DoubleConv(in_channels, 128),
             nn.Conv2d(128, 4 * len(anchor_ratios), 3, 1, 1),
         )
+        self.device = device
 
     def forward_single(self, x, img_shape):
         classes = self.class_branch(x)
@@ -64,10 +65,10 @@ class RetinaHead(nn.Module):
         output_boxes = boxes.clone()
         output_boxes[..., 0] = output_boxes[..., 0] * cell_shape[1] + \
                                   torch.arange(0, boxes.shape[2]).repeat(boxes.shape[1], 1) \
-                                      .view(1, boxes.shape[1], boxes.shape[2], 1) * cell_shape[1]
+                                      .view(1, boxes.shape[1], boxes.shape[2], 1).to(self.device) * cell_shape[1]
         output_boxes[..., 1] = output_boxes[..., 1] * cell_shape[0] + \
                                   torch.arange(0, boxes.shape[1]).repeat(boxes.shape[2], 1).t() \
-                                      .view(1, boxes.shape[1], boxes.shape[2], 1) * cell_shape[0]
+                                      .view(1, boxes.shape[1], boxes.shape[2], 1).to(self.device) * cell_shape[0]
         for i, anchor in enumerate(anchors):
             output_boxes[..., i, 2] = torch.exp(output_boxes[..., i, 2]) * anchor[1]
             output_boxes[..., i, 3] = torch.exp(output_boxes[..., i, 3]) * anchor[0]

@@ -29,16 +29,18 @@ class EfficientDet(nn.Module):
                  threshold=0.01,
                  iou_threshold=0.5,
                  transform=transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                std=[0.229, 0.224, 0.225])):
+                                                std=[0.229, 0.224, 0.225]),
+                 device='cpu'):
         super(EfficientDet, self).__init__()
-        self.backbone = EfficientNet.from_pretrained(MODEL_MAP[network])
+        self.device = device
+        self.backbone = EfficientNet.from_pretrained(MODEL_MAP[network]).to(device)
         self.is_training = is_training
         self.neck = BIFPN(in_channels=self.backbone.get_list_features()[-5:],
                           out_channels=W_bifpn,
                           stack=D_bifpn,
-                          num_outs=5)
+                          num_outs=5).to(device)
         self.bbox_head = RetinaHead(num_classes=num_classes,
-                                    in_channels=W_bifpn)
+                                    in_channels=W_bifpn, device=self.device).to(device)
 
         self.threshold = threshold
         self.iou_threshold = iou_threshold

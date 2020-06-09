@@ -409,15 +409,21 @@ def build_label(annots, img_shape, anchor_ratios, num_classes):
         best_anchor = max_iou_i % len(anchor_ratios)
 
         anchor_shape = cell_shapes[best_level, best_anchor]
-        cell_shape = img_h // rect_levels[best_level].shape[0], img_w // rect_levels[best_level].shape[1]
+        cell_shape = float(img_h // rect_levels[best_level].shape[0]), float(img_w // rect_levels[best_level].shape[1])
         y_i = c_y.int() // cell_shape[0]
         x_i = c_x.int() // cell_shape[1]
+
+        y_i = y_i.int()
+        x_i = x_i.int()
         #
         if torch.isinf(torch.log(h / anchor_shape[0])):
             print('f')
 
-        rect_levels[best_level][y_i, x_i, best_anchor, 0] = (c_x - x_i * cell_shape[1]) / cell_shape[1]
-        rect_levels[best_level][y_i, x_i, best_anchor, 1] = (c_y - y_i * cell_shape[0]) / cell_shape[1]
+        x = (c_x - x_i * cell_shape[1]) / cell_shape[1]
+        y = (c_y - y_i * cell_shape[0]) / cell_shape[1]
+
+        rect_levels[best_level][y_i, x_i, best_anchor, 0] = x
+        rect_levels[best_level][y_i, x_i, best_anchor, 1] = y
         rect_levels[best_level][y_i, x_i, best_anchor, 2] = torch.log(w / anchor_shape[1])
         rect_levels[best_level][y_i, x_i, best_anchor, 3] = torch.log(h / anchor_shape[0])
         classes_levels[best_level][y_i, x_i, best_anchor, c.int()] = 1
@@ -431,11 +437,10 @@ def build_label(annots, img_shape, anchor_ratios, num_classes):
     return rects, classes
 
 
-def postprocess(classes, rects):
+def postprocess(classes, rects, keep_score=0.35):
     rects = xywh2xyxy(rects)
     scores = torch.max(classes, dim=-1)[0]
 
-    keep_score = 0.4
     rects = rects[scores > keep_score]
     classes = classes[scores > keep_score]
     scores = scores[scores > keep_score]

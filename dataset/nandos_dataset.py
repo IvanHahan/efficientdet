@@ -18,7 +18,7 @@ def resize_image(image, size=IMAGE_SIZE):
 
 class NandosDataset(Dataset):
 
-    def __init__(self, image_dir, label_path, transform=torchvision.transforms.ToTensor()):
+    def __init__(self, image_dir, label_path, device='cpu', transform=None):
         super().__init__()
         self.image_dir = image_dir
         self.label_path = label_path
@@ -32,6 +32,7 @@ class NandosDataset(Dataset):
             self.records = records
         self.frames = list(self.records.keys())
         self.transform = transform
+        self.device = device
 
     def __getitem__(self, index):
         frame_path = self.frames[index]
@@ -47,8 +48,14 @@ class NandosDataset(Dataset):
 
         if self.transform:
             image = self.transform(image)
+        else:
+            image = torch.from_numpy(image.transpose([2, 0, 1]))
 
         rects, classes = build_label(torch.from_numpy(annot), image.shape[1:], [0.5, 1, 2], self.num_classes())
+
+        image = image.to(self.device)
+        rects = rects.to(self.device)
+        classes = classes.to(self.device)
 
         return image, rects, classes
 
