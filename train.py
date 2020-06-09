@@ -1,26 +1,24 @@
-from efficientdet import EfficientDet
-from dataset.nandos_dataset import NandosDataset
-import torch
-from torchvision import transforms
-from torch import nn
-from dataset.letter_dataset import LetterDataset
-from torch.utils.data import DataLoader
 import argparse
-import numpy as np
-from efficientdet.losses import total_loss, focal_loss
-from efficientdet.utils import build_label, postprocess
-from torch.optim import Adam
-from matplotlib import pyplot as plt
-import cv2
 import os
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from torchvision import transforms
+
+from dataset.nandos_dataset import NandosDataset
+from efficientdet import EfficientDet
+from efficientdet.losses import total_loss
 from ranger import ranger
 from util import make_dir_if_needed
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=500)
 parser.add_argument('--dataset', choices=['nandos'], default='nandos')
-parser.add_argument('--image_dir', default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_images')
-parser.add_argument('--label_path', default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_label.txt')
+parser.add_argument('--image_dir',
+                    default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_images')
+parser.add_argument('--label_path',
+                    default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_label.txt')
 parser.add_argument('--model_dir', default='model/')
 parser.add_argument('--verbosity', default=10, type=int)
 parser.add_argument('--network', default='efficientdet-d0')
@@ -33,13 +31,7 @@ if __name__ == '__main__':
     calc_loss = total_loss()
 
     if args.dataset == 'nandos':
-        train_dataset = NandosDataset(args.image_dir, args.label_path,
-                                      transform=transforms.Compose([
-                                          transforms.ToTensor(),
-                                          transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                               std=[0.229, 0.224, 0.225])
-                                      ])
-                                      )
+        train_dataset = NandosDataset(args.image_dir, args.label_path)
 
     model = EfficientDet(train_dataset.num_classes(), network=args.network)
 
@@ -62,6 +54,3 @@ if __name__ == '__main__':
 
         if e % args.verbosity == 0:
             torch.save(model.state_dict(), os.path.join(args.model_dir, f'{args.network}-e{e}.pth'))
-
-
-

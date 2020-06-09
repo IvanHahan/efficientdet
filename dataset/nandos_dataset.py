@@ -3,8 +3,16 @@ import os
 import cv2
 import numpy as np
 import torch
-from dataset.image_processing import resize_image, pad_image
+import dataset.image_processing as im_proc
 from efficientdet.utils import build_label
+
+IMAGE_SIZE = (768, 512)
+
+def resize_image(image, size=IMAGE_SIZE):
+    image = im_proc.resize_image(image, max(size))
+
+    image = im_proc.pad_image(image, size)[0]
+    return image
 
 
 class NandosDataset(Dataset):
@@ -29,13 +37,12 @@ class NandosDataset(Dataset):
         annot = np.array(self.records[frame_path]).astype(float)
         image = cv2.imread(os.path.join(self.image_dir, frame_path))
 
-        d = image.shape[1] / 768
-        image = resize_image(image, 768)
+        d = image.shape[1] / IMAGE_SIZE[0]
 
         annot[:, :4] /= d
         annot = annot.astype(int)
 
-        image = pad_image(image, (768, 512))[0]
+        image = resize_image(image)
 
         if self.transform:
             image = self.transform(image)

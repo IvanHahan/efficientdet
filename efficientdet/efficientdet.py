@@ -1,13 +1,12 @@
+import numpy as np
 import torch
 import torch.nn as nn
-import math
-from efficientnet.model import EfficientNet
+from torchvision import transforms
+
 from efficientdet.bifpn import BIFPN
 from efficientdet.my_retinahead import RetinaHead
-from efficientdet.module import RegressionModel, ClassificationModel, Anchors, ClipBoxes, BBoxTransform
-from torchvision.ops import nms
-from efficientdet.utils import calc_iou
-import numpy as np
+from efficientnet.model import EfficientNet
+
 MODEL_MAP = {
     'efficientdet-d0': 'efficientnet-b0',
     'efficientdet-d1': 'efficientnet-b1',
@@ -26,10 +25,11 @@ class EfficientDet(nn.Module):
                  network='efficientdet-d0',
                  D_bifpn=3,
                  W_bifpn=88,
-                 D_class=3,
                  is_training=True,
                  threshold=0.01,
-                 iou_threshold=0.5):
+                 iou_threshold=0.5,
+                 transform=transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                std=[0.229, 0.224, 0.225])):
         super(EfficientDet, self).__init__()
         self.backbone = EfficientNet.from_pretrained(MODEL_MAP[network])
         self.is_training = is_training
@@ -42,11 +42,17 @@ class EfficientDet(nn.Module):
 
         self.threshold = threshold
         self.iou_threshold = iou_threshold
+        self.transform = transform
 
-    def forward(self, inputs):
-        x = self.extract_feat(inputs)
+    def forward(self, x):
+        xs = []
+        for x_ in x:
+            x_ = self.transform(x_)
+            xs.append(x_)
+        xs = torch.stack(xs)
+        x = self.extract_feat(xs)
         # classes, train_boxes, output_boxes = self.bbox_head(x, inputs.shape[2:])
-        classes, activations, train_boxes, output_boxes = self.bbox_head(x, inputs.shape[2:])
+        classes, activations, train_boxes, output_boxes = self.bbox_head(x, x.shape[2:])
         return classes, activations, train_boxes, output_boxes
 
     def extract_feat(self, img):
