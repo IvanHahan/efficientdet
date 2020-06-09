@@ -79,7 +79,7 @@ class LetterDataset(Dataset):
 
 
 if __name__ == '__main__':
-    ds = LetterDataset("/Users/UnicornKing/PyCharmProjects/efficientdet/data/images/raw",
-                       "/Users/UnicornKing/PyCharmProjects/efficientdet/data/annotations")
+    ds = LetterDataset("/dataset/images/raw",
+                       "/dataset/annotations")
     print(ds[0][1].shape)
 

@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 import torch
-from data.image_processing import resize_image, pad_image
+from dataset.image_processing import resize_image, pad_image
 from efficientdet.utils import build_label
 
 

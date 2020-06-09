@@ -39,19 +39,21 @@ if __name__ == '__main__':
     optimizer = ranger(model.parameters(), 1e-3)
 
     for e in range(args.epochs):
+        losses = []
         for images, rects, classes in DataLoader(train_dataset, 4, False):
             optimizer.zero_grad()
 
             classes_, activations, train_rects, output_rects = model(images.float())
 
             loss = calc_loss(train_rects, classes_, rects, classes)
-            print('loss:', loss.item())
+            losses.append(loss.item())
 
             loss.backward()
             # torch.nn.utils.clip_grad_value_(model.parameters(), 0.1)
             optimizer.step()
+        print(f'EPOCH {e}: Loss - {np.mean(losses)}')
 
-        if e % 2 == 0:
+        if e % 10 == 0:
             image = (images[0].data.numpy().transpose([1, 2, 0]) * 127.5) + 127.5
             image = image.copy().astype('uint8')
             out_classes, out_rects = postprocess(classes_[0], output_rects[0])
