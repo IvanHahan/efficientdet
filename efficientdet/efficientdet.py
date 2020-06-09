@@ -44,15 +44,15 @@ class EfficientDet(nn.Module):
         self.iou_threshold = iou_threshold
         self.transform = transform
 
-    def forward(self, x):
+    def forward(self, inputs):
         xs = []
-        for x_ in x:
+        for x_ in inputs:
             x_ = self.transform(x_)
             xs.append(x_)
         xs = torch.stack(xs)
         x = self.extract_feat(xs)
         # classes, train_boxes, output_boxes = self.bbox_head(x, inputs.shape[2:])
-        classes, activations, train_boxes, output_boxes = self.bbox_head(x, x.shape[2:])
+        classes, activations, train_boxes, output_boxes = self.bbox_head(x, inputs.shape[2:])
         return classes, activations, train_boxes, output_boxes
 
     def extract_feat(self, img):

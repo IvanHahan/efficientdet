@@ -16,9 +16,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=500)
 parser.add_argument('--dataset', choices=['nandos'], default='nandos')
 parser.add_argument('--image_dir',
-                    default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_images')
+                    default='data/detection_images')
 parser.add_argument('--label_path',
-                    default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_label.txt')
+                    default='data/detection_label.txt')
 parser.add_argument('--model_dir', default='model/')
 parser.add_argument('--verbosity', default=10, type=int)
 parser.add_argument('--network', default='efficientdet-d0')

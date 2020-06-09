@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import dataset.image_processing as im_proc
 from efficientdet.utils import build_label
+import torchvision
 
 IMAGE_SIZE = (768, 512)
 
@@ -17,7 +18,7 @@ def resize_image(image, size=IMAGE_SIZE):
 
 class NandosDataset(Dataset):
 
-    def __init__(self, image_dir, label_path, transform=None):
+    def __init__(self, image_dir, label_path, transform=torchvision.transforms.ToTensor()):
         super().__init__()
         self.image_dir = image_dir
         self.label_path = label_path

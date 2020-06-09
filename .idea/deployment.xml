@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ihahanov@sciforce:2345" autoUploadExternalChanges="true">
+    <serverData>
+      <paths name="ihahanov@sciforce:2345">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ihahanov/Projects/EfficientDet" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
