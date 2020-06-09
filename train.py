@@ -1,9 +1,9 @@
 from efficientdet import EfficientDet
-from data.nandos_dataset import NandosDataset
+from dataset.nandos_dataset import NandosDataset
 import torch
 from torchvision import transforms
 from torch import nn
-from data.letter_dataset import LetterDataset
+from dataset.letter_dataset import LetterDataset
 from torch.utils.data import DataLoader
 import argparse
 import numpy as np
@@ -12,16 +12,23 @@ from efficientdet.utils import build_label, postprocess
 from torch.optim import Adam
 from matplotlib import pyplot as plt
 import cv2
+import os
 from ranger import ranger
+from util import make_dir_if_needed
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=500)
 parser.add_argument('--dataset', choices=['nandos'], default='nandos')
 parser.add_argument('--image_dir', default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_images')
 parser.add_argument('--label_path', default='/Users/UnicornKing/sciforce/ActionRecognitionAnnotator/data/detection_label.txt')
+parser.add_argument('--model_dir', default='model/')
+parser.add_argument('--verbosity', default=10, type=int)
+parser.add_argument('--network', default='efficientdet-d0')
 args = parser.parse_args()
 
 if __name__ == '__main__':
+
+    make_dir_if_needed(args.model_dir)
 
     calc_loss = total_loss()
 
@@ -34,7 +41,7 @@ if __name__ == '__main__':
                                       ])
                                       )
 
-    model = EfficientDet(train_dataset.num_classes())
+    model = EfficientDet(train_dataset.num_classes(), network=args.network)
 
     optimizer = ranger(model.parameters(), 1e-3)
 
@@ -53,18 +60,8 @@ if __name__ == '__main__':
             optimizer.step()
         print(f'EPOCH {e}: Loss - {np.mean(losses)}')
 
-        if e % 10 == 0:
-            image = (images[0].data.numpy().transpose([1, 2, 0]) * 127.5) + 127.5
-            image = image.copy().astype('uint8')
-            out_classes, out_rects = postprocess(classes_[0], output_rects[0])
-            for rect in out_rects.data.numpy():
-                x1, y1, x2, y2 = rect.astype(int).tolist()
-                image = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 3)
-            plt.imshow(image)
-            plt.show()
+        if e % args.verbosity == 0:
+            torch.save(model.state_dict(), os.path.join(args.model_dir, f'{args.network}-e{e}.pth'))
 
-
-        # if e > 40:
-        #     optimizer = Adam(model.parameters(), 0.001)
 
 
