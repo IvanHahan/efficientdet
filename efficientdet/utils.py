@@ -398,7 +398,7 @@ def build_label(annots, img_shape, anchor_ratios, num_classes):
         divider *= 2
     cell_shapes = torch.FloatTensor(cell_shapes)
     for annot in annots:
-        x1, y1, x2, y2, c = annot
+        x1, y1, x2, y2, c = annot.float()
 
         c_x, c_y = (x2 + x1) / 2, (y2 + y1) / 2
         w, h = (x2 - x1), (y2 - y1)

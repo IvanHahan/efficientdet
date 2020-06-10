@@ -14,6 +14,8 @@ from util import make_dir_if_needed
 from efficientdet.utils import postprocess
 import cv2
 import matplotlib.pyplot as plt
+from dataset.augmentation import Augmenter, MaxSizeResizer, ToTensor, SquarePad
+from torchvision import transforms
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=500)
@@ -38,7 +40,12 @@ if __name__ == '__main__':
     calc_loss = total_loss()
 
     if args.dataset == 'nandos':
-        train_dataset = NandosDataset(args.image_dir, args.label_path, device=device)
+        train_dataset = NandosDataset(args.image_dir, args.label_path, device=device, transform=transforms.Compose([
+            Augmenter(),
+            MaxSizeResizer(1280),
+            SquarePad(),
+            ToTensor(),
+        ]))
 
     model = EfficientDet(train_dataset.num_classes(), network=args.network, device=device).to(device)
 
@@ -50,7 +57,7 @@ if __name__ == '__main__':
 
     for e in range(args.epochs):
         losses = []
-        for images, rects, classes in DataLoader(train_dataset, 4, False):
+        for images, rects, classes in DataLoader(train_dataset, 2, False):
             optimizer.zero_grad()
 
             classes_, activations, train_rects, output_rects = model(images.float())

@@ -6,6 +6,7 @@ import torch
 import dataset.image_processing as im_proc
 from efficientdet.utils import build_label
 import torchvision
+from .augmentation import ToTensor
 
 IMAGE_SIZE = (768, 512)
 
@@ -18,7 +19,7 @@ def resize_image(image, size=IMAGE_SIZE):
 
 class NandosDataset(Dataset):
 
-    def __init__(self, image_dir, label_path, device='cpu', transform=None):
+    def __init__(self, image_dir, label_path, device='cpu', transform=ToTensor()):
         super().__init__()
         self.image_dir = image_dir
         self.label_path = label_path
@@ -39,19 +40,11 @@ class NandosDataset(Dataset):
         annot = np.array(self.records[frame_path]).astype(float)
         image = cv2.imread(os.path.join(self.image_dir, frame_path))
 
-        d = image.shape[1] / IMAGE_SIZE[0]
+        sample = self.transform({'image': image, 'annotations': annot})
+        image = sample['image']
+        annot = sample['annotations']
 
-        annot[:, :4] /= d
-        annot = annot.astype(int)
-
-        image = resize_image(image)
-
-        if self.transform:
-            image = self.transform(image)
-        else:
-            image = torch.from_numpy(image.transpose([2, 0, 1]))
-
-        rects, classes = build_label(torch.from_numpy(annot), image.shape[1:], [0.5, 1, 2], self.num_classes())
+        rects, classes = build_label(annot, image.shape[1:], [0.5, 1, 2], self.num_classes())
 
         image = image.to(self.device)
         rects = rects.to(self.device)
