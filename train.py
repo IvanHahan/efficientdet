@@ -18,7 +18,7 @@ from dataset.augmentation import Augmenter, MaxSizeResizer, ToTensor, SquarePad
 from torchvision import transforms
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=500)
+parser.add_argument('--epochs', type=int, default=501)
 parser.add_argument('--dataset', choices=['nandos'], default='nandos')
 parser.add_argument('--image_dir',
                     default='data/detection_images')
@@ -26,9 +26,9 @@ parser.add_argument('--label_path',
                     default='data/detection_label.txt')
 parser.add_argument('--model_dir', default='model/')
 parser.add_argument('--verbosity', default=100, type=int)
-parser.add_argument('--network', default='efficientdet-d0')
+parser.add_argument('--network', default='efficientdet-d2')
 parser.add_argument('--device', default='cuda')
-parser.add_argument('--checkpoint', default='model/efficientdet-d0-e400.pth')
+parser.add_argument('--checkpoint', default=None)
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     for e in range(args.epochs):
         losses = []
-        for images, rects, classes in DataLoader(train_dataset, 2, False):
+        for images, rects, classes in DataLoader(train_dataset, 1, False):
             optimizer.zero_grad()
 
             classes_, activations, train_rects, output_rects = model(images.float())
@@ -68,14 +68,6 @@ if __name__ == '__main__':
             loss.backward()
             # torch.nn.utils.clip_grad_value_(model.parameters(), 0.1)
             optimizer.step()
-
-            out_classes, out_rects = postprocess(classes_[0], output_rects[0])
-            image = images[0].int().cpu().numpy().transpose([1, 2, 0]).copy().astype('uint8')
-            for rect in out_rects.cpu().data.numpy():
-                x1, y1, x2, y2 = rect.astype(int).tolist()
-                image = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
-            plt.imshow(image)
-            plt.show()
 
         print(f'EPOCH {e}: Loss - {np.mean(losses)}')
 

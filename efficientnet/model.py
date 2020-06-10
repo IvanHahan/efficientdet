@@ -173,7 +173,7 @@ class EfficientNet(nn.Module):
 
         # Build blocks
         self._blocks = nn.ModuleList([])
-        for block_args in self._blocks_args:
+        for i, block_args in enumerate(self._blocks_args):
 
             # Update block input and output filters based on depth multiplier.
             block_args = block_args._replace(
@@ -187,6 +187,7 @@ class EfficientNet(nn.Module):
             image_size = calculate_output_image_size(image_size, block_args.stride)
             if block_args.num_repeat > 1: # modify block_args to keep same output size
                 block_args = block_args._replace(input_filters=block_args.output_filters, stride=1)
+                self._blocks_args[i] = block_args
             for _ in range(block_args.num_repeat - 1):
                 self._blocks.append(MBConvBlock(block_args, self._global_params, image_size=image_size))
                 # image_size = calculate_output_image_size(image_size, block_args.stride)  # stride = 1
