@@ -8,7 +8,7 @@ from efficientdet.utils import build_label
 import torchvision
 from .augmentation import ToTensor
 
-IMAGE_SIZE = (768, 512)
+IMAGE_SIZE = (1280, 1280)
 
 def resize_image(image, size=IMAGE_SIZE):
     image = im_proc.resize_image(image, max(size))

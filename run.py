@@ -15,11 +15,13 @@ import cv2
 from dataset.nandos_dataset import resize_image
 from efficientdet.utils import postprocess
 import matplotlib.pyplot as plt
+from torchvision import transforms
+from dataset.augmentation import MaxSizeResizer, ToTensor, SquarePad, Augmenter
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', default='data/detection_images/00012961.jpg')
+parser.add_argument('--input', default='data/detection_images/00017327.jpg')
 parser.add_argument('--output', default='output.jpg')
-parser.add_argument('--weights', default='model/efficientdet-d0-e200.pth')
+parser.add_argument('--weights', default='model/efficientdet-d0-e400.pth')
 parser.add_argument('--network', default='efficientdet-d0')
 parser.add_argument('--num_classes', default=3)
 args = parser.parse_args()
@@ -31,11 +33,18 @@ if __name__ == '__main__':
     model.eval()
 
     image = cv2.imread(args.input)
-
-    image = resize_image(image).astype('uint8')
-    input_ = torch.from_numpy(np.expand_dims(image.transpose([2, 0, 1]), 0))
-    classes_, _, train_rects, output_rects = model(input_.float())
-    out_classes, out_rects = postprocess(classes_[0], output_rects[0], 0.4)
+    transforms = transforms.Compose(
+        [
+            MaxSizeResizer(1280),
+            SquarePad(),
+            ToTensor(),
+        ]
+    )
+    image = transforms({'image': image})['image'].float()
+    image = image.view(1, *image.size())
+    classes_, _, train_rects, output_rects = model(image.float())
+    out_classes, out_rects = postprocess(classes_[0], output_rects[0], 0.2)
+    image = image[0].int().cpu().numpy().transpose([1, 2, 0]).copy().astype('uint8')
     for rect in out_rects.data.numpy():
         x1, y1, x2, y2 = rect.astype(int).tolist()
         image = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)

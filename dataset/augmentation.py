@@ -27,11 +27,14 @@ def get_augmentations():
 
     return iaa.Sequential(
         [
-            sometimes(iaa.Multiply()),
-            sometimes(iaa.HorizontalFlip()),
-            sometimes(iaa.GammaContrast()),
-            sometimes(iaa.AddToHueAndSaturation(5)),
-            sometimes(iaa.CLAHE())
+            iaa.SomeOf(2, [
+                sometimes(iaa.Multiply()),
+                sometimes(iaa.HorizontalFlip()),
+                sometimes(iaa.GammaContrast()),
+                sometimes(iaa.AddToHueAndSaturation(5)),
+                sometimes(iaa.CLAHE())
+            ]
+                       )
         ]
     )
 
