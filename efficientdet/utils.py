@@ -415,17 +415,19 @@ def build_label(annots, img_shape, anchor_ratios, num_classes):
 
         y_i = y_i.int()
         x_i = x_i.int()
-        #
-        if torch.isinf(torch.log(h / anchor_shape[0])):
-            print('f')
 
         x = (c_x - x_i * cell_shape[1]) / cell_shape[1]
         y = (c_y - y_i * cell_shape[0]) / cell_shape[1]
+        w = torch.log(w / anchor_shape[1])
+        h = torch.log(h / anchor_shape[0])
+
+        if torch.isinf(h) or torch.isinf(w):
+            print('f')
 
         rect_levels[best_level][y_i, x_i, best_anchor, 0] = x
         rect_levels[best_level][y_i, x_i, best_anchor, 1] = y
-        rect_levels[best_level][y_i, x_i, best_anchor, 2] = torch.log(w / anchor_shape[1])
-        rect_levels[best_level][y_i, x_i, best_anchor, 3] = torch.log(h / anchor_shape[0])
+        rect_levels[best_level][y_i, x_i, best_anchor, 2] = w
+        rect_levels[best_level][y_i, x_i, best_anchor, 3] = h
         classes_levels[best_level][y_i, x_i, best_anchor, c.int()] = 1
 
 

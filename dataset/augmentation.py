@@ -31,7 +31,9 @@ def get_augmentations():
                 sometimes(iaa.Multiply()),
                 sometimes(iaa.HorizontalFlip()),
                 sometimes(iaa.GammaContrast()),
-                sometimes(iaa.AddToHueAndSaturation(5)),
+                sometimes(iaa.Affine(scale=(0.9, 1.1), translate_percent=0.1)),
+                sometimes(iaa.AddToSaturation()),
+                sometimes(iaa.AddToBrightness()),
                 sometimes(iaa.CLAHE())
             ]
                        )
