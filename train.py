@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     model.train()
     # model.eval()
-    optimizer = ranger(model.parameters(), 1e-4)
+    optimizer = ranger(model.parameters(), 1e-3)
 
     for e in range(init_epoch, args.epochs):
         losses = []
