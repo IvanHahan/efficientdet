@@ -39,13 +39,10 @@ class NandosDataset(Dataset):
         frame_path = self.frames[index]
         annot = np.array(self.records[frame_path]).astype(float)
         image = cv2.imread(os.path.join(self.image_dir, frame_path))
-
         sample = self.transform({'image': image, 'annotations': annot})
         image = sample['image']
         annot = sample['annotations']
-
         rects, classes = build_label(annot, image.shape[1:], [0.5, 1, 2], self.num_classes())
-
         image = image.to(self.device)
         rects = rects.to(self.device)
         classes = classes.to(self.device)
@@ -56,7 +53,7 @@ class NandosDataset(Dataset):
         return len(self.frames)
 
     def num_classes(self):
-        return 3
+        return 1
 
 
 if __name__ == '__main__':

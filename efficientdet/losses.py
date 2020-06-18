@@ -24,6 +24,7 @@ def total_loss():
 
         object_pred_boxes = pred_boxes[object_i]
         object_annot_boxes = annot_boxes[object_i]
+
         # print(object_pred_boxes[..., 2:].data, object_annot_boxes[..., 2:])
 
         f_loss = focal_loss(0.25, 2)(pred_classes, annot_classes)
@@ -32,10 +33,10 @@ def total_loss():
         y_loss = F.binary_cross_entropy(object_pred_boxes[..., 1], object_annot_boxes[..., 1])  # y
         w_loss = F.mse_loss(object_pred_boxes[..., 2], object_annot_boxes[..., 2])
         h_loss = F.mse_loss(object_pred_boxes[..., 3], object_annot_boxes[..., 3])
-        if torch.isinf(f_loss) or torch.isnan(f_loss):
-            print(torch.isinf(pred_classes), torch.isnan(pred_classes))
+        # if torch.isinf(f_loss) or torch.isnan(f_loss):
+        #     print(torch.isinf(pred_classes), torch.isnan(pred_classes))
         # if torch.isinf(f_loss) or torch.isinf(x_loss) or torch.isinf(w_loss) or torch.isinf(h_loss):
-        #     print( f_loss , x_loss , y_loss , w_loss , h_loss)
+        # print( f_loss.item() , x_loss.item() , y_loss.item() , w_loss.item() , h_loss.item())
         # if torch.isinf(w_loss):
         #     print(object_annot_boxes[..., 2])
 

@@ -400,6 +400,9 @@ def build_label(annots, img_shape, anchor_ratios, num_classes):
     for annot in annots:
         x1, y1, x2, y2, c = annot.float()
 
+        if x1 >= x2 or y1 >= y2:
+            continue
+
         c_x, c_y = (x2 + x1) / 2, (y2 + y1) / 2
         w, h = (x2 - x1), (y2 - y1)
         max_iou_i = torch.argmax(torch.FloatTensor([calc_iou([x1, y1, x2, y2], [0, 0, *cell_shape], no_positions=True)
@@ -420,9 +423,6 @@ def build_label(annots, img_shape, anchor_ratios, num_classes):
         y = (c_y - y_i * cell_shape[0]) / cell_shape[1]
         w = torch.log(w / anchor_shape[1])
         h = torch.log(h / anchor_shape[0])
-
-        if torch.isinf(h) or torch.isinf(w):
-            print('f')
 
         rect_levels[best_level][y_i, x_i, best_anchor, 0] = x
         rect_levels[best_level][y_i, x_i, best_anchor, 1] = y

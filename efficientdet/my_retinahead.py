@@ -32,6 +32,7 @@ class RetinaHead(nn.Module):
         self.class_branch = nn.Sequential(
             DoubleConv(in_channels, 128),
             nn.Conv2d(128, num_classes * len(anchor_ratios), 3, 1, 1),
+            nn.BatchNorm2d(num_classes * len(anchor_ratios)),
             nn.Sigmoid()
         )
         self.boxes_branch = nn.Sequential(

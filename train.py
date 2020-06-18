@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
+import re
 
 from dataset.nandos_dataset import NandosDataset
 from dataset.letter_dataset import LetterDataset
@@ -19,12 +20,12 @@ from dataset.augmentation import Augmenter, MaxSizeResizer, ToTensor, SquarePad
 from torchvision import transforms
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=501)
-parser.add_argument('--dataset', choices=['nandos', 'letters'], default='nandos')
+parser.add_argument('--epochs', type=int, default=601)
+parser.add_argument('--dataset', choices=['nandos', 'letters'], default='letters')
 parser.add_argument('--image_dir',
-                    default='data/nandos/detection_images')
+                    default='data/screenshot/train/images')
 parser.add_argument('--label_path',
-                    default='data/nandos/detection_label.txt')
+                    default='data/screenshot/train/annotations')
 parser.add_argument('--model_dir', default='model/')
 parser.add_argument('--verbosity', default=50, type=int)
 parser.add_argument('--network', default='efficientdet-d0')
@@ -42,7 +43,7 @@ if __name__ == '__main__':
 
     if args.dataset == 'nandos':
         train_dataset = NandosDataset(args.image_dir, args.label_path, device=device, transform=transforms.Compose([
-            Augmenter(),
+            # Augmenter(),
             MaxSizeResizer(1024),
             SquarePad(),
             ToTensor(),
@@ -57,13 +58,17 @@ if __name__ == '__main__':
     model = EfficientDet(train_dataset.num_classes(), network=args.network, device=device).to(device)
     model.eval()
 
+    init_epoch = 0
     if args.checkpoint:
+        checkpoint_name = os.path.basename(args.checkpoint)
+        init_epoch = int(re.findall(r'e\d+',  checkpoint_name)[0][1:])
         model.load_state_dict(torch.load(args.checkpoint))
 
     model.train()
-    optimizer = ranger(model.parameters(), 1e-3)
+    # model.eval()
+    optimizer = ranger(model.parameters(), 1e-4)
 
-    for e in range(args.epochs):
+    for e in range(init_epoch, args.epochs):
         losses = []
         for images, rects, classes in DataLoader(train_dataset, 2, False):
             optimizer.zero_grad()
@@ -74,13 +79,14 @@ if __name__ == '__main__':
             losses.append(loss.item())
 
             loss.backward()
+            # torch.nn.utils.clip_grad_value_(model.parameters(), 0.1)
             optimizer.step()
 
         print(f'EPOCH {e}: Loss - {np.mean(losses)}')
 
         if e % args.verbosity == 0:
             torch.save(model.state_dict(), os.path.join(args.model_dir, f'{args.dataset}-{args.network}-e{e}.pth'))
-            out_classes, out_rects = postprocess(classes_[0], output_rects[0])
+            out_classes, out_rects = postprocess(classes_[0], output_rects[0], )
             image = images[0].int().cpu().numpy().transpose([1,2,0]).copy().astype('uint8')
             for rect in out_rects.cpu().data.numpy():
                 x1, y1, x2, y2 = rect.astype(int).tolist()

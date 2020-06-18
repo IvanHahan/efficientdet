@@ -19,11 +19,11 @@ from torchvision import transforms
 from dataset.augmentation import MaxSizeResizer, ToTensor, SquarePad, Augmenter
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', default='data/screenshot/train/images/0_mainframe.png')
+parser.add_argument('--input', default='data/nandos/detection_images/00011972.jpg')
 parser.add_argument('--output', default='output.jpg')
-parser.add_argument('--weights', default='model/efficientdet-d2-e50.pth')
-parser.add_argument('--network', default='efficientdet-d2')
-parser.add_argument('--num_classes', default=1)
+parser.add_argument('--weights', default='model/nandos-efficientdet-d0-e600.pth')
+parser.add_argument('--network', default='efficientdet-d0')
+parser.add_argument('--num_classes', default=3)
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -43,11 +43,11 @@ if __name__ == '__main__':
     image = transforms({'image': image})['image'].float()
     image = image.view(1, *image.size())
     classes_, _, train_rects, output_rects = model(image.float())
-    out_classes, out_rects = postprocess(classes_[0], output_rects[0], 0.3)
+    out_classes, out_rects = postprocess(classes_[0], output_rects[0], 0.55)
     image = image[0].int().cpu().numpy().transpose([1, 2, 0]).copy().astype('uint8')
     for rect in out_rects.data.numpy():
         x1, y1, x2, y2 = rect.astype(int).tolist()
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 1)
+        image = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
     cv2.imwrite(args.output, image)
     plt.imshow(image)
     plt.show()
