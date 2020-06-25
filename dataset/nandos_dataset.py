@@ -42,7 +42,7 @@ class NandosDataset(Dataset):
         sample = self.transform({'image': image, 'annotations': annot})
         image = sample['image']
         annot = sample['annotations']
-        rects, classes = build_label(annot, image.shape[1:], [0.5, 1, 2], self.num_classes())
+        rects, classes = build_label(annot, image.shape[1:], [0.5, 1, 2], [0.5, 1], self.num_classes())
         image = image.to(self.device)
         rects = rects.to(self.device)
         classes = classes.to(self.device)

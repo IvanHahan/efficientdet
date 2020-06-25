@@ -22,18 +22,37 @@ def boxes_imgaug2numpy(boxes):
     return np.array(annotations)
 
 
+# def get_augmentations():
+#     def sometimes(aug, p=0.5): return iaa.Sometimes(p, aug)
+#
+#     return iaa.Sequential(
+#         [
+#             iaa.SomeOf(2, [
+#                 sometimes(iaa.Multiply()),
+#                 sometimes(iaa.HorizontalFlip()),
+#                 sometimes(iaa.GammaContrast()),
+#                 sometimes(iaa.Affine(scale=(0.9, 1.1), translate_percent=0.1)),
+#                 sometimes(iaa.AddToSaturation()),
+#                 sometimes(iaa.AddToBrightness()),
+#                 sometimes(iaa.CLAHE())
+#             ]
+#                        )
+#         ]
+#     )
+
+
 def get_augmentations():
     def sometimes(aug, p=0.5): return iaa.Sometimes(p, aug)
 
     return iaa.Sequential(
         [
+            # sometimes(iaa.Affine(scale=(1, 1.6), translate_percent=0.2)),
             iaa.SomeOf(2, [
                 sometimes(iaa.Multiply()),
-                sometimes(iaa.HorizontalFlip()),
                 sometimes(iaa.GammaContrast()),
-                sometimes(iaa.Affine(scale=(0.9, 1.1), translate_percent=0.1)),
                 sometimes(iaa.AddToSaturation()),
                 sometimes(iaa.AddToBrightness()),
+                # sometimes(iaa.AddToHue()),
                 sometimes(iaa.CLAHE())
             ]
                        )

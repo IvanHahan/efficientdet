@@ -25,19 +25,20 @@ class DoubleConv(nn.Module):
 
 class RetinaHead(nn.Module):
 
-    def __init__(self, in_channels, num_classes, anchor_ratios=[0.5, 1, 2], device='cpu'):
+    def __init__(self, in_channels, num_classes, anchor_ratios=[0.5, 1, 2], anchor_scales=[0.5, 1], device='cpu'):
         super().__init__()
         self.anchor_ratios = anchor_ratios
+        self.anchor_scales = anchor_scales
         self.num_classes = num_classes
         self.class_branch = nn.Sequential(
             DoubleConv(in_channels, 128),
-            nn.Conv2d(128, num_classes * len(anchor_ratios), 3, 1, 1),
+            nn.Conv2d(128, num_classes * len(anchor_ratios) * len(anchor_scales), 3, 1, 1),
             # nn.BatchNorm2d(num_classes * len(anchor_ratios)),
             nn.Sigmoid()
         )
         self.boxes_branch = nn.Sequential(
             DoubleConv(in_channels, 128),
-            nn.Conv2d(128, 4 * len(anchor_ratios), 3, 1, 1),
+            nn.Conv2d(128, 4 * len(anchor_ratios) * len(anchor_scales), 3, 1, 1),
         )
         self.device = device
 
@@ -49,19 +50,20 @@ class RetinaHead(nn.Module):
 
         boxes = self.boxes_branch(x)
         boxes = boxes.permute(0, 2, 3, 1)
-        boxes = boxes.contiguous().view(*boxes.shape[:3], len(self.anchor_ratios), 4)  # B x H x W x A x (xywh)
+        boxes = boxes.contiguous().view(*boxes.shape[:3], len(self.anchor_ratios) * len(self.anchor_scales), 4)  # B x H x W x A x (xywh)
         # print((boxes[..., :2]<0).sum())
         boxes[..., :2] = torch.sigmoid(boxes[..., :2])
 
         cell_shape = img_shape // np.array(list(boxes.shape[1:3]))
         anchors = []
         for ratio in self.anchor_ratios:
-            anchor = [max(cell_shape), max(cell_shape)]
-            if ratio < 1:
-                anchor[0] /= ratio
-            else:
-                anchor[1] *= ratio
-            anchors.append(anchor)
+            for scale in self.anchor_scales:
+                anchor = [max(cell_shape) * scale, max(cell_shape) * scale]
+                if ratio < 1:
+                    anchor[0] /= ratio
+                else:
+                    anchor[1] *= ratio
+                anchors.append(anchor)
 
         output_boxes = boxes.clone()
         output_boxes[..., 0] = output_boxes[..., 0] * cell_shape[1] + \
